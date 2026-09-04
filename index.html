@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preha App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #0f0f0f; color: #e0e0e0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: #1a1a2e; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); width: 100%; max-width: 420px; }
+        h1 { text-align: center; margin-bottom: 1.5rem; color: #3ecf8e; font-size: 1.5rem; }
+        .status { text-align: center; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .status.connected { background: rgba(62,207,142,0.15); color: #3ecf8e; border: 1px solid rgba(62,207,142,0.3); }
+        .status.error { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+        .status.loading { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: #999; }
+        input, select { width: 100%; padding: 0.7rem; border: 1px solid #333; border-radius: 8px; background: #0f0f0f; color: #e0e0e0; font-size: 0.95rem; outline: none; transition: border 0.2s; }
+        input:focus, select:focus { border-color: #3ecf8e; }
+        button { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; background: #3ecf8e; color: #0f0f0f; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; }
+        button:hover { opacity: 0.85; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .data-section { margin-top: 1.5rem; }
+        .data-section h2 { font-size: 1rem; color: #999; margin-bottom: 0.75rem; }
+        .data-list { list-style: none; }
+        .data-list li { padding: 0.6rem 0.8rem; background: #0f0f0f; border-radius: 6px; margin-bottom: 0.4rem; font-size: 0.85rem; border: 1px solid #222; }
+        .empty { text-align: center; color: #555; font-size: 0.85rem; padding: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Preha</h1>
+        <div id="status" class="status loading">Connecting to Supabase...</div>
+
+        <div id="form-section" style="display:none;">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="nameInput" placeholder="Enter a name">
+            </div>
+            <button id="addBtn" onclick="addItem()">Add Item</button>
+
+            <div class="data-section">
+                <h2>Items</h2>
+                <ul id="dataList" class="data-list"></ul>
+                <div id="emptyMsg" class="empty">No items yet. Add one above.</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+        const SUPABASE_URL = 'https://urzehamthhmvjtduqeea.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyemVoYW10aGhtdmp0ZHVxZWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1MjQ3NjQsImV4cCI6MjEwNDEwMDc2NH0.C6ikg2G6QsGwN943uEZVVxHNG_g9cszbWsbJLy9TwP8';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const statusEl = document.getElementById('status');
+        const formSection = document.getElementById('form-section');
+        const dataList = document.getElementById('dataList');
+        const emptyMsg = document.getElementById('emptyMsg');
+        const addBtn = document.getElementById('addBtn');
+        const nameInput = document.getElementById('nameInput');
+
+        async function init() {
+            const { error } = await supabase.from('items').select('id').limit(1);
+            if (error && error.code === '42P01') {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = 'Table <b>items</b> not found. Create it in Supabase Dashboard:<br><code>CREATE TABLE items (id serial PRIMARY KEY, name text NOT NULL, created_at timestamptz DEFAULT now());</code>';
+                formSection.style.display = 'block';
+                return;
+            }
+            statusEl.className = 'status connected';
+            statusEl.textContent = 'Connected to Supabase';
+            formSection.style.display = 'block';
+            loadItems();
+        }
+
+        async function loadItems() {
+            const { data, error } = await supabase.from('items').select('*').order('created_at', { ascending: false });
+            if (error) return;
+            dataList.innerHTML = '';
+            if (!data || data.length === 0) {
+                emptyMsg.style.display = 'block';
+                return;
+            }
+            emptyMsg.style.display = 'none';
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.name;
+                dataList.appendChild(li);
+            });
+        }
+
+        window.addItem = async function() {
+            const name = nameInput.value.trim();
+            if (!name) return;
+            addBtn.disabled = true;
+            const { error } = await supabase.from('items').insert({ name });
+            addBtn.disabled = false;
+            if (!error) {
+                nameInput.value = '';
+                loadItems();
+            }
+        };
+
+        nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+        init();
+    </script>
+</body>
+</html>
