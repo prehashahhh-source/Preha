@@ -3,46 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preha App</title>
+    <title>Rosnura</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --rose-50: #fff1f2;
+            --rose-100: #ffe4e6;
+            --rose-200: #fecdd3;
+            --rose-300: #fda4af;
+            --rose-400: #fb7185;
+            --rose-500: #f43f5e;
+            --rose-600: #e11d48;
+            --blush: #fdf2f8;
+            --cream: #fefcfb;
+            --mauve: #9d174d;
+            --gold: #d4a574;
+            --gold-light: #f5e6d3;
+            --text: #4a1942;
+            --text-light: #836380;
+            --border: #f9d4dc;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, sans-serif; background: #0f0f0f; color: #e0e0e0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { background: #1a1a2e; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); width: 100%; max-width: 420px; }
-        h1 { text-align: center; margin-bottom: 1.5rem; color: #3ecf8e; font-size: 1.5rem; }
-        .status { text-align: center; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
-        .status.connected { background: rgba(62,207,142,0.15); color: #3ecf8e; border: 1px solid rgba(62,207,142,0.3); }
-        .status.error { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-        .status.loading { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: #999; }
-        input, select { width: 100%; padding: 0.7rem; border: 1px solid #333; border-radius: 8px; background: #0f0f0f; color: #e0e0e0; font-size: 0.95rem; outline: none; transition: border 0.2s; }
-        input:focus, select:focus { border-color: #3ecf8e; }
-        button { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; background: #3ecf8e; color: #0f0f0f; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; }
-        button:hover { opacity: 0.85; }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        .data-section { margin-top: 1.5rem; }
-        .data-section h2 { font-size: 1rem; color: #999; margin-bottom: 0.75rem; }
-        .data-list { list-style: none; }
-        .data-list li { padding: 0.6rem 0.8rem; background: #0f0f0f; border-radius: 6px; margin-bottom: 0.4rem; font-size: 0.85rem; border: 1px solid #222; }
-        .empty { text-align: center; color: #555; font-size: 0.85rem; padding: 1rem; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Decorative background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(253,164,175,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -150px;
+            left: -150px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(244,63,94,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .page { display: none; position: relative; z-index: 1; }
+        .page.active { display: flex; }
+
+        /* ── Auth Page ── */
+        .auth-page {
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .brand-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, var(--rose-300), var(--rose-400));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(244,63,94,0.2);
+        }
+
+        .brand-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: white;
+        }
+
+        .brand h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-top: 0.3rem;
+            font-weight: 300;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 24px rgba(153,27,77,0.06), 0 1px 4px rgba(153,27,77,0.04);
+            border: 1px solid var(--border);
+        }
+
+        .auth-card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .auth-card .subtitle {
+            color: var(--text-light);
+            font-size: 0.88rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            background: var(--blush);
+            color: var(--text);
+            font-size: 0.92rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--rose-400);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(251,113,133,0.12);
+        }
+
+        .form-group input::placeholder {
+            color: #c9b3c7;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--rose-400), var(--rose-500));
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(244,63,94,0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.88rem;
+            color: var(--text-light);
+        }
+
+        .toggle-text a {
+            color: var(--rose-500);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .toggle-text a:hover {
+            color: var(--mauve);
+        }
+
+        .error-msg {
+            background: #fff1f2;
+            color: var(--rose-600);
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            margin-bottom: 1rem;
+            display: none;
+            border: 1px solid var(--rose-200);
+            line-height: 1.4;
+        }
+
+        .error-msg.show { display: block; }
+
+        .success-msg {
+            background: #f0fdf4;
+            color: #16a34a;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            margin-bottom: 1rem;
+            display: none;
+            border: 1px solid #bbf7d0;
+        }
+
+        .success-msg.show { display: block; }
+
+        /* ── Welcome Page ── */
+        .welcome-page {
+            min-height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 24px;
+            padding: 3.5rem 3rem;
+            box-shadow: 0 4px 24px rgba(153,27,77,0.06), 0 1px 4px rgba(153,27,77,0.04);
+            border: 1px solid var(--border);
+            max-width: 520px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--rose-300), var(--rose-500), var(--gold));
+        }
+
+        .welcome-flower {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-card h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-card .welcome-sub {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            line-height: 1.5;
+        }
+
+        .welcome-card .email-badge {
+            display: inline-block;
+            background: var(--blush);
+            color: var(--rose-600);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid var(--rose-200);
+            margin-bottom: 2rem;
+        }
+
+        .welcome-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .btn-secondary {
+            padding: 0.8rem 1.5rem;
+            border: 1.5px solid var(--rose-300);
+            border-radius: 12px;
+            background: white;
+            color: var(--rose-500);
+            font-weight: 500;
+            font-size: 0.92rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--rose-50);
+            border-color: var(--rose-400);
+        }
+
+        .btn-logout {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-light);
+            font-weight: 400;
+            font-size: 0.88rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .btn-logout:hover {
+            color: var(--rose-500);
+        }
+
+        /* ── Decorative petals ── */
+        .petal {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--rose-200);
+            border-radius: 50% 0 50% 0;
+            opacity: 0.4;
+            animation: float 6s ease-in-out infinite;
+        }
+        .petal:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+        .petal:nth-child(2) { top: 20%; right: 8%; animation-delay: 1.5s; background: var(--rose-300); }
+        .petal:nth-child(3) { bottom: 15%; left: 10%; animation-delay: 3s; background: var(--gold-light); }
+        .petal:nth-child(4) { bottom: 25%; right: 5%; animation-delay: 4.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(20deg); }
+        }
+
+        /* ── Loading spinner ── */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Responsive ── */
+        @media (max-width: 480px) {
+            .auth-card { padding: 1.8rem; }
+            .welcome-card { padding: 2.5rem 1.8rem; }
+            .brand h1 { font-size: 2rem; }
+            .welcome-card h1 { font-size: 1.6rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Preha</h1>
-        <div id="status" class="status loading">Connecting to Supabase...</div>
 
-        <div id="form-section" style="display:none;">
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="nameInput" placeholder="Enter a name">
+    <!-- ════════ SIGN IN PAGE ════════ -->
+    <div id="signin-page" class="page auth-page active">
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+
+        <div class="auth-wrapper">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <h1>Rosnura</h1>
+                <p>Modest & elegant fashion for you</p>
             </div>
-            <button id="addBtn" onclick="addItem()">Add Item</button>
 
-            <div class="data-section">
-                <h2>Items</h2>
-                <ul id="dataList" class="data-list"></ul>
-                <div id="emptyMsg" class="empty">No items yet. Add one above.</div>
+            <div class="auth-card">
+                <!-- Sign In Form -->
+                <div id="signin-form">
+                    <h2>Welcome back</h2>
+                    <p class="subtitle">Sign in to your account</p>
+
+                    <div id="signin-error" class="error-msg"></div>
+                    <div id="signin-success" class="success-msg"></div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="signin-email" placeholder="your@email.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="signin-password" placeholder="Enter your password" autocomplete="current-password">
+                    </div>
+                    <button class="btn-primary" id="signin-btn" onclick="handleSignIn()">Sign In</button>
+
+                    <p class="toggle-text">Don't have an account? <a onclick="showSignUp()">Create one</a></p>
+                </div>
+
+                <!-- Sign Up Form -->
+                <div id="signup-form" style="display:none;">
+                    <h2>Create account</h2>
+                    <p class="subtitle">Join Rosnura today</p>
+
+                    <div id="signup-error" class="error-msg"></div>
+                    <div id="signup-success" class="success-msg"></div>
+
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="signup-name" placeholder="Your name" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="signup-email" placeholder="your@email.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="signup-password" placeholder="Min 6 characters" autocomplete="new-password">
+                    </div>
+                    <button class="btn-primary" id="signup-btn" onclick="handleSignUp()">Create Account</button>
+
+                    <p class="toggle-text">Already have an account? <a onclick="showSignIn()">Sign in</a></p>
+                </div>
+
+                <!-- Verification notice -->
+                <div id="verify-notice" style="display:none; text-align:center; padding: 1rem 0;">
+                    <div style="font-size:2.5rem; margin-bottom:1rem;">✉️</div>
+                    <h2 style="font-family:'Playfair Display',serif; margin-bottom:0.5rem;">Check your email</h2>
+                    <p class="subtitle" id="verify-msg">We sent a verification link to your email. Please confirm to continue.</p>
+                    <button class="btn-secondary" style="margin-top:1rem;" onclick="showSignIn()">Back to Sign In</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ WELCOME PAGE ════════ -->
+    <div id="welcome-page" class="page welcome-page">
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+
+        <div class="welcome-card">
+            <div class="welcome-flower">🌹</div>
+            <h1 id="welcome-name">Welcome!</h1>
+            <p class="welcome-sub">We're so happy to have you here.<br>Your modest fashion journey starts now.</p>
+            <div class="email-badge" id="welcome-email"></div>
+            <div class="welcome-actions">
+                <button class="btn-primary" onclick="alert('Coming soon — your curated collection!')">Browse Collection</button>
+                <button class="btn-logout" onclick="handleSignOut()">Sign out</button>
             </div>
         </div>
     </div>
@@ -54,58 +498,161 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyemVoYW10aGhtdmp0ZHVxZWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1MjQ3NjQsImV4cCI6MjEwNDEwMDc2NH0.C6ikg2G6QsGwN943uEZVVxHNG_g9cszbWsbJLy9TwP8';
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const statusEl = document.getElementById('status');
-        const formSection = document.getElementById('form-section');
-        const dataList = document.getElementById('dataList');
-        const emptyMsg = document.getElementById('emptyMsg');
-        const addBtn = document.getElementById('addBtn');
-        const nameInput = document.getElementById('nameInput');
 
-        async function init() {
-            const { error } = await supabase.from('items').select('id').limit(1);
-            if (error && error.code === '42P01') {
-                statusEl.className = 'status error';
-                statusEl.innerHTML = 'Table <b>items</b> not found. Create it in Supabase Dashboard:<br><code>CREATE TABLE items (id serial PRIMARY KEY, name text NOT NULL, created_at timestamptz DEFAULT now());</code>';
-                formSection.style.display = 'block';
-                return;
-            }
-            statusEl.className = 'status connected';
-            statusEl.textContent = 'Connected to Supabase';
-            formSection.style.display = 'block';
-            loadItems();
-        }
+        const signinPage = document.getElementById('signin-page');
+        const welcomePage = document.getElementById('welcome-page');
+        const signinEmail = document.getElementById('signin-email');
+        const signinPassword = document.getElementById('signin-password');
+        const signupName = document.getElementById('signup-name');
+        const signupEmail = document.getElementById('signup-email');
+        const signupPassword = document.getElementById('signup-password');
 
-        async function loadItems() {
-            const { data, error } = await supabase.from('items').select('*').order('created_at', { ascending: false });
-            if (error) return;
-            dataList.innerHTML = '';
-            if (!data || data.length === 0) {
-                emptyMsg.style.display = 'block';
-                return;
-            }
-            emptyMsg.style.display = 'none';
-            data.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item.name;
-                dataList.appendChild(li);
-            });
-        }
-
-        window.addItem = async function() {
-            const name = nameInput.value.trim();
-            if (!name) return;
-            addBtn.disabled = true;
-            const { error } = await supabase.from('items').insert({ name });
-            addBtn.disabled = false;
-            if (!error) {
-                nameInput.value = '';
-                loadItems();
-            }
+        /* ── Show/hide forms ── */
+        window.showSignUp = function() {
+            document.getElementById('signin-form').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'block';
+            document.getElementById('verify-notice').style.display = 'none';
         };
 
-        nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+        window.showSignIn = function() {
+            document.getElementById('signin-form').style.display = 'block';
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('verify-notice').style.display = 'none';
+        };
 
-        init();
+        function showVerify(email) {
+            document.getElementById('signin-form').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('verify-notice').style.display = 'block';
+            document.getElementById('verify-msg').textContent = `We sent a verification link to ${email}. Please confirm to continue.`;
+        }
+
+        /* ── Show welcome ── */
+        function showWelcome(user) {
+            const name = user.user_metadata?.full_name || user.email.split('@')[0];
+            document.getElementById('welcome-name').textContent = `Welcome, ${name}!`;
+            document.getElementById('welcome-email').textContent = user.email;
+            signinPage.classList.remove('active');
+            welcomePage.classList.add('active');
+        }
+
+        function showAuth() {
+            welcomePage.classList.remove('active');
+            signinPage.classList.add('active');
+        }
+
+        /* ── Auth handlers ── */
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span>Please wait...';
+            } else {
+                btn.disabled = false;
+                btn.textContent = btnId === 'signin-btn' ? 'Sign In' : 'Create Account';
+            }
+        }
+
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'error-msg show';
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-msg, .success-msg').forEach(e => e.className = e.classList.contains('success-msg') ? 'success-msg' : 'error-msg');
+        }
+
+        window.handleSignIn = async function() {
+            clearErrors();
+            const email = signinEmail.value.trim();
+            const password = signinPassword.value;
+
+            if (!email || !password) {
+                showError('signin-error', 'Please fill in all fields.');
+                return;
+            }
+
+            setLoading('signin-btn', true);
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            setLoading('signin-btn', false);
+
+            if (error) {
+                if (error.message.includes('Email not confirmed')) {
+                    showError('signin-error', 'Please verify your email first. Check your inbox for the confirmation link.');
+                } else if (error.message.includes('Invalid login')) {
+                    showError('signin-error', 'Invalid email or password. Please try again.');
+                } else {
+                    showError('signin-error', error.message);
+                }
+                return;
+            }
+
+            showWelcome(data.user);
+        };
+
+        window.handleSignUp = async function() {
+            clearErrors();
+            const name = signupName.value.trim();
+            const email = signupEmail.value.trim();
+            const password = signupPassword.value;
+
+            if (!name || !email || !password) {
+                showError('signup-error', 'Please fill in all fields.');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('signup-error', 'Password must be at least 6 characters.');
+                return;
+            }
+
+            setLoading('signup-btn', true);
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { full_name: name }
+                }
+            });
+            setLoading('signup-btn', false);
+
+            if (error) {
+                showError('signup-error', error.message);
+                return;
+            }
+
+            if (data.user?.identities?.length === 0) {
+                showError('signup-error', 'An account with this email already exists.');
+                return;
+            }
+
+            if (data.user && !data.user.confirmed_at) {
+                showVerify(email);
+                return;
+            }
+
+            showWelcome(data.user);
+        };
+
+        window.handleSignOut = async function() {
+            await supabase.auth.signOut();
+            showAuth();
+            signinEmail.value = '';
+            signinPassword.value = '';
+            clearErrors();
+        };
+
+        /* ── Enter key support ── */
+        signinPassword.addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
+        signinEmail.addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
+        signupPassword.addEventListener('keydown', e => { if (e.key === 'Enter') handleSignUp(); });
+
+        /* ── Check existing session ── */
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+            showWelcome(session.user);
+        }
     </script>
 </body>
 </html>
